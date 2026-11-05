@@ -51,16 +51,23 @@ async def get_vehicle_data(credential_store, account_id, vin):
         battery_status = await vehicle.get_battery_status()
         cockpit_status = await vehicle.get_cockpit()
         
-        # Tratar timestamps: se já forem string, manter; se forem None, deixar None
-        battery_ts = battery_status.timestamp if isinstance(battery_status.timestamp, str) else (battery_status.timestamp.isoformat() if battery_status.timestamp else None)
-        cockpit_ts = cockpit_status.timestamp if isinstance(cockpit_status.timestamp, str) else (cockpit_status.timestamp.isoformat() if cockpit_status.timestamp else None)
+        # Tratar timestamps de forma segura
+        # Bateria
+        batt_ts = getattr(battery_status, 'timestamp', None)
+        if batt_ts and not isinstance(batt_ts, str):
+            batt_ts = batt_ts.isoformat()
+            
+        # Cockpit (pode não ter timestamp em alguns modelos/versões)
+        cock_ts = getattr(cockpit_status, 'timestamp', None)
+        if cock_ts and not isinstance(cock_ts, str):
+            cock_ts = cock_ts.isoformat()
 
         return {
-            "battery_level": battery_status.batteryLevel,
-            "battery_autonomy": battery_status.batteryAutonomy,
-            "battery_timestamp": battery_ts,
-            "total_mileage": cockpit_status.totalMileage,
-            "cockpit_timestamp": cockpit_ts
+            "battery_level": getattr(battery_status, 'batteryLevel', 0),
+            "battery_autonomy": getattr(battery_status, 'batteryAutonomy', 0),
+            "battery_timestamp": batt_ts,
+            "total_mileage": getattr(cockpit_status, 'totalMileage', 0),
+            "cockpit_timestamp": cock_ts
         }
 
 async def send_to_apps_script(data):
