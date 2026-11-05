@@ -51,12 +51,16 @@ async def get_vehicle_data(credential_store, account_id, vin):
         battery_status = await vehicle.get_battery_status()
         cockpit_status = await vehicle.get_cockpit()
         
+        # Tratar timestamps: se já forem string, manter; se forem None, deixar None
+        battery_ts = battery_status.timestamp if isinstance(battery_status.timestamp, str) else (battery_status.timestamp.isoformat() if battery_status.timestamp else None)
+        cockpit_ts = cockpit_status.timestamp if isinstance(cockpit_status.timestamp, str) else (cockpit_status.timestamp.isoformat() if cockpit_status.timestamp else None)
+
         return {
             "battery_level": battery_status.batteryLevel,
             "battery_autonomy": battery_status.batteryAutonomy,
-            "battery_timestamp": battery_status.timestamp.isoformat() if battery_status.timestamp else None,
+            "battery_timestamp": battery_ts,
             "total_mileage": cockpit_status.totalMileage,
-            "cockpit_timestamp": cockpit_status.timestamp.isoformat() if cockpit_status.timestamp else None
+            "cockpit_timestamp": cockpit_ts
         }
 
 async def send_to_apps_script(data):
