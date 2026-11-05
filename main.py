@@ -16,8 +16,11 @@ def load_credentials():
 
     credentials = json.loads(raw)
     
-    # Verificar chaves essenciais (nota a grafia 'accound-id' que a biblioteca usa)
-    if "accound-id" not in credentials or "vin" not in credentials:
+    # Verificar chaves essenciais
+    account_id = credentials.get("accound-id")
+    vin = credentials.get("vin")
+    
+    if not account_id or not vin:
         raise RuntimeError("ERRO: Credenciais inválidas. Faltam 'accound-id' ou 'vin'.")
 
     credentials_dir = Path.home() / ".credentials"
@@ -27,20 +30,19 @@ def load_credentials():
     credentials_file.write_text(json.dumps(credentials), encoding="utf-8")
     credentials_file.chmod(0o600)
     
-    return FileCredentialStore(str(credentials_file))
+    return FileCredentialStore(str(credentials_file)), account_id, vin
 
-async def get_vehicle_data(credential_store):
+async def get_vehicle_data(credential_store, account_id):
     """Obtém apenas os dados de bateria e cockpit do veículo."""
     async with aiohttp.ClientSession() as websession:
-        # Na v0.6.3, é necessário passar a websession explicitamente
         client = RenaultClient(
             credential_store=credential_store,
             locale="pt_PT",
             websession=websession
         )
         
-        # Obter a conta associada às credenciais
-        account = await client.get_api_account()
+        # Obter a conta usando o account_id extraído das credenciais
+        account = await client.get_api_account(account_id)
         
         # Obter o veículo associado à conta
         vehicle = await account.get_api_vehicle()
@@ -90,12 +92,12 @@ async def main():
     try:
         print("Iniciar recolha de dados do Dacia Spring...")
         
-        # 1. Carregar credenciais
-        credential_store = load_credentials()
-        print("Credenciais carregadas com sucesso.")
+        # 1. Carregar credenciais e extrair IDs
+        credential_store, account_id, vin = load_credentials()
+        print(f"Credenciais carregadas para a conta: {account_id}")
         
         # 2. Obter dados do veículo
-        data = await get_vehicle_data(credential_store)
+        data = await get_vehicle_data(credential_store, account_id)
         print(f"Dados recolhidos: Bateria={data['battery_level']}%, Autonomia={data['battery_autonomy']}km, KM={data['total_mileage']}")
         
         # 3. Enviar para Google Sheets
