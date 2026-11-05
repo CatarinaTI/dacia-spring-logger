@@ -1,38 +1,24 @@
 name: Dacia Spring Logger
 
 on:
-  workflow_dispatch: # Permite execução manual
+  workflow_dispatch:
   schedule:
-    # Executar às 06:00, 14:00 e 22:00 (Hora de Lisboa)
-    # Nota: O GitHub usa UTC. 
-    # Inverno (UTC+0): 06:00 PT = 06:00 UTC
-    # Verão (UTC+1): 06:00 PT = 05:00 UTC
-    # Para simplificar e garantir que não falhamos dados, vamos usar horários fixos em UTC
-    # que cubram os períodos pretendidos. Ajustaremos se necessário após os primeiros testes.
-    - cron: '* * * * *' # Executa TODOS os minutos (apenas para teste!)
+    - cron: '* * * * *'
 
 jobs:
   log-data:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
-
-      - name: Install dependencies
-        run: |
+      - run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Run Dacia Logger
+      - run: python main.py
         env:
           RENAULT_CREDENTIALS_JSON: ${{ secrets.RENAULT_CREDENTIALS_JSON }}
           APPS_SCRIPT_URL: ${{ secrets.APPS_SCRIPT_URL }}
           APPS_SCRIPT_SECRET: ${{ secrets.APPS_SCRIPT_SECRET }}
-        run: python main.py
