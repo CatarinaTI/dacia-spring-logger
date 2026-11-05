@@ -8,8 +8,10 @@ from pathlib import Path
 import aiohttp
 from renault_api.credential_store import FileCredentialStore
 from renault_api.renault_client import RenaultClient
-from renault_api.gigya import GIGYA_URL_EU
-from renault_api.kamereon import KAMEREON_URL_EU
+
+# URLs oficiais da Renault para a região Europeia
+GIGYA_URL = "https://accounts.eu1.gigya.com"
+KAMEREON_URL = "https://api-wired-prod-1-eu1.wrd-aws.com"
 
 def load_credentials():
     """Carrega as credenciais do segredo do GitHub e prepara o ficheiro local."""
@@ -37,8 +39,8 @@ async def get_vehicle_data(credential_store):
     client = RenaultClient(
         credential_store=credential_store,
         locale="pt_PT",
-        gigya_root_url=GIGYA_URL_EU,
-        kamereon_root_url=KAMEREON_URL_EU
+        gigya_root_url=GIGYA_URL,
+        kamereon_root_url=KAMEREON_URL
     )
     
     # Obter a conta associada às credenciais
