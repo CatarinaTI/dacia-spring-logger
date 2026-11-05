@@ -32,7 +32,7 @@ def load_credentials():
     
     return FileCredentialStore(str(credentials_file)), account_id, vin
 
-async def get_vehicle_data(credential_store, account_id):
+async def get_vehicle_data(credential_store, account_id, vin):
     """Obtém apenas os dados de bateria e cockpit do veículo."""
     async with aiohttp.ClientSession() as websession:
         client = RenaultClient(
@@ -41,11 +41,11 @@ async def get_vehicle_data(credential_store, account_id):
             websession=websession
         )
         
-        # Obter a conta usando o account_id extraído das credenciais
+        # Obter a conta usando o account_id
         account = await client.get_api_account(account_id)
         
-        # Obter o veículo associado à conta
-        vehicle = await account.get_api_vehicle()
+        # Obter o veículo usando o VIN
+        vehicle = await account.get_api_vehicle(vin)
         
         # Recolher apenas os dados necessários
         battery_status = await vehicle.get_battery_status()
@@ -94,10 +94,10 @@ async def main():
         
         # 1. Carregar credenciais e extrair IDs
         credential_store, account_id, vin = load_credentials()
-        print(f"Credenciais carregadas para a conta: {account_id}")
+        print(f"Credenciais carregadas para a conta: {account_id} e veículo: {vin}")
         
         # 2. Obter dados do veículo
-        data = await get_vehicle_data(credential_store, account_id)
+        data = await get_vehicle_data(credential_store, account_id, vin)
         print(f"Dados recolhidos: Bateria={data['battery_level']}%, Autonomia={data['battery_autonomy']}km, KM={data['total_mileage']}")
         
         # 3. Enviar para Google Sheets
