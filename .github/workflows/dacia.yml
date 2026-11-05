@@ -9,7 +9,7 @@ on:
     # Verão (UTC+1): 06:00 PT = 05:00 UTC
     # Para simplificar e garantir que não falhamos dados, vamos usar horários fixos em UTC
     # que cubram os períodos pretendidos. Ajustaremos se necessário após os primeiros testes.
-    - cron: '0 6,14,22 * * *' 
+    - cron: '0 6,14,23 * * *' 
 
 jobs:
   log-data:
