@@ -31,29 +31,31 @@ def load_credentials():
 
 async def get_vehicle_data(credential_store):
     """Obtém apenas os dados de bateria e cockpit do veículo."""
-    # Na v0.6.3, o cliente detecta a região pelo locale
-    client = RenaultClient(
-        credential_store=credential_store,
-        locale="pt_PT"
-    )
-    
-    # Obter a conta associada às credenciais
-    account = await client.get_api_account()
-    
-    # Obter o veículo associado à conta
-    vehicle = await account.get_api_vehicle()
-    
-    # Recolher apenas os dados necessários
-    battery_status = await vehicle.get_battery_status()
-    cockpit_status = await vehicle.get_cockpit()
-    
-    return {
-        "battery_level": battery_status.batteryLevel,
-        "battery_autonomy": battery_status.batteryAutonomy,
-        "battery_timestamp": battery_status.timestamp.isoformat() if battery_status.timestamp else None,
-        "total_mileage": cockpit_status.totalMileage,
-        "cockpit_timestamp": cockpit_status.timestamp.isoformat() if cockpit_status.timestamp else None
-    }
+    async with aiohttp.ClientSession() as websession:
+        # Na v0.6.3, é necessário passar a websession explicitamente
+        client = RenaultClient(
+            credential_store=credential_store,
+            locale="pt_PT",
+            websession=websession
+        )
+        
+        # Obter a conta associada às credenciais
+        account = await client.get_api_account()
+        
+        # Obter o veículo associado à conta
+        vehicle = await account.get_api_vehicle()
+        
+        # Recolher apenas os dados necessários
+        battery_status = await vehicle.get_battery_status()
+        cockpit_status = await vehicle.get_cockpit()
+        
+        return {
+            "battery_level": battery_status.batteryLevel,
+            "battery_autonomy": battery_status.batteryAutonomy,
+            "battery_timestamp": battery_status.timestamp.isoformat() if battery_status.timestamp else None,
+            "total_mileage": cockpit_status.totalMileage,
+            "cockpit_timestamp": cockpit_status.timestamp.isoformat() if cockpit_status.timestamp else None
+        }
 
 async def send_to_apps_script(data):
     """Envia os dados para o Google Apps Script."""
