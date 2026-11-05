@@ -2,16 +2,11 @@ import asyncio
 import json
 import os
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 import aiohttp
 from renault_api.credential_store import FileCredentialStore
 from renault_api.renault_client import RenaultClient
-
-# URLs oficiais da Renault para a região Europeia
-GIGYA_URL = "https://accounts.eu1.gigya.com"
-KAMEREON_URL = "https://api-wired-prod-1-eu1.wrd-aws.com"
 
 def load_credentials():
     """Carrega as credenciais do segredo do GitHub e prepara o ficheiro local."""
@@ -36,11 +31,10 @@ def load_credentials():
 
 async def get_vehicle_data(credential_store):
     """Obtém apenas os dados de bateria e cockpit do veículo."""
+    # Na v0.6.3, o cliente detecta a região pelo locale
     client = RenaultClient(
         credential_store=credential_store,
-        locale="pt_PT",
-        gigya_root_url=GIGYA_URL,
-        kamereon_root_url=KAMEREON_URL
+        locale="pt_PT"
     )
     
     # Obter a conta associada às credenciais
